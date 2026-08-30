@@ -1,0 +1,27 @@
+<Window x:Class="YYCount.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:viewModels="clr-namespace:YYCount.ViewModels"
+        Title="Калькулятор условных установок" Height="600" Width="800">
+    <Window.DataContext>
+        <viewModels:MainWindowViewModel />
+    </Window.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        
+
+        <!-- Основная область с контентом -->
+        <Frame Grid.Row="0" Content="{Binding CurrentPage}" NavigationUIVisibility="Hidden" />
+        
+        <!-- Верхнее меню -->
+        <Border Grid.Row="1" Background="Lavender" VerticalAlignment="Bottom" Height="20" Padding="0">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <TextBlock Text="Soulver Team" Foreground="LightCoral" FontSize="10" Margin="0,0,5,0"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

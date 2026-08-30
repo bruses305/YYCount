@@ -1,0 +1,50 @@
+<Window x:Class="YYCount.Views.EquipmentSelectorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Выбор оборудования" Height="450" Width="500"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Поиск:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="0,0,10,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Сортировка:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <Button Content="А-Я" Command="{Binding SetSortCommand}" CommandParameter="NameAsc" Margin="0,0,5,0"/>
+            <Button Content="Я-А" Command="{Binding SetSortCommand}" CommandParameter="NameDesc" Margin="0,0,5,0"/>
+            <Button Content="Усл. ↑" Command="{Binding SetSortCommand}" CommandParameter="UnitAsc" Margin="0,0,5,0"/>
+            <Button Content="Усл. ↓" Command="{Binding SetSortCommand}" CommandParameter="UnitDesc" Margin="0,0,5,0"/>
+        </StackPanel>
+
+        <!-- Добавлен x:Name -->
+        <ListBox x:Name="ItemsListBox" Grid.Row="2" ItemsSource="{Binding FilteredItems}" 
+                 SelectedItem="{Binding SelectedItem}" Margin="0,0,0,10">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Name}"/>
+                        <TextBlock Grid.Column="1" Text="{Binding UnitValue, StringFormat='{}{0:F2} у.е.'}" Margin="10,0,0,0"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Выбрать" Command="{Binding SelectCommand}" 
+                    CommandParameter="{Binding SelectedItem}" Margin="0,0,10,0" Padding="15,5" IsDefault="True"/>
+            <Button Content="Отмена" Command="{Binding CancelCommand}" Padding="15,5" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
