@@ -17,7 +17,9 @@ namespace YYCount.ViewModels
 
         public ICommand OpenCalculationCommand { get; }
         public ICommand CreateNewCommand { get; }
-        public ICommand DeleteCalculationCommand { get; } // новая команда
+        public ICommand DeleteCalculationCommand { get; } 
+        public ICommand OpenTemplateEditorCommand { get; }
+        public ICommand OpenAboutCommand { get; } 
 
         public HistoryPageViewModel(MainWindowViewModel mainVm)
         {
@@ -30,6 +32,9 @@ namespace YYCount.ViewModels
             OpenCalculationCommand = new RelayCommand<Calculation>(calc => _mainVm.NavigateToCalculation(calc));
             CreateNewCommand = new RelayCommand(() => _mainVm.NavigateToCalculation(null));
             DeleteCalculationCommand = new RelayCommand<Calculation>(DeleteCalculation, CanDeleteCalculation);
+
+            OpenTemplateEditorCommand = new RelayCommand(()=>_mainVm.OpenTemplateEditor());
+            //OpenAboutCommand = new RelayCommand(()=>_mainVm.);
         }
 
         private bool CanDeleteCalculation(Calculation calc) => calc != null;

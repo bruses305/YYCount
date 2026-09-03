@@ -13,12 +13,11 @@
         </Grid.RowDefinitions>
 
         
-
         <!-- Основная область с контентом -->
-        <Frame Grid.Row="0" Content="{Binding CurrentPage}" NavigationUIVisibility="Hidden" />
+        <Frame Grid.Row="1" Content="{Binding CurrentPage}" NavigationUIVisibility="Hidden" />
         
         <!-- Верхнее меню -->
-        <Border Grid.Row="1" Background="Lavender" VerticalAlignment="Bottom" Height="20" Padding="0">
+        <Border Grid.Row="2" Background="Lavender" VerticalAlignment="Bottom" Height="20" Padding="0">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
                 <TextBlock Text="Soulver Team" Foreground="LightCoral" FontSize="10" Margin="0,0,5,0"/>
             </StackPanel>

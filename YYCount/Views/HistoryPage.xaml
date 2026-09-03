@@ -7,8 +7,13 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Button Content="Создать новый расчёт" Command="{Binding CreateNewCommand}" 
-                Padding="10,5" HorizontalAlignment="Left"/>
+        <Border Grid.Row="0" Background="White" Padding="10">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Создать Новый расчёт" Command="{Binding CreateNewCommand}" Margin="0,0,10,0" Padding="10,5"/>
+                <Button Content="Шаблон" Command="{Binding OpenTemplateEditorCommand}" Margin="0,0,10,0" Padding="10,5"/>
+                <Button Content="О программе"  Command="{Binding OpenAboutCommand}" Padding="10,5"/>
+            </StackPanel>
+        </Border>
 
         <ListBox Grid.Row="1" ItemsSource="{Binding Calculations}" Margin="0,10,0,0">
             <ListBox.ItemContainerStyle>

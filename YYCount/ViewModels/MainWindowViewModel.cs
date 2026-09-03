@@ -14,12 +14,10 @@ namespace YYCount.ViewModels
             set => Set(ref _currentPage, value);
         }
 
-        public ICommand NavigateHistoryCommand { get; }
         public ICommand NavigateCalculationCommand { get; }
 
         public MainWindowViewModel()
         {
-            NavigateHistoryCommand = new RelayCommand(() => CurrentPage = CreateHistoryPage());
             NavigateCalculationCommand = new RelayCommand(() => CurrentPage = CreateCalculationPage(null));
             CurrentPage = CreateHistoryPage(); // стартовая страница
         }
@@ -49,5 +47,19 @@ namespace YYCount.ViewModels
         {
             CurrentPage = CreateHistoryPage();
         }
+        
+        public void OpenTemplateEditor()
+        {
+            var vm = new TemplateEditorViewModel();
+            var window = new TemplateEditorWindow(vm);
+            window.ShowDialog();
+        }
+
+        // private void OpenAbout()
+        // {
+        //     var vm = new AboutViewModel();
+        //     var window = new AboutWindow(vm);
+        //     window.ShowDialog();
+        // }
     }
 }

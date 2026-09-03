@@ -1,7 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
+using Microsoft.Win32;
 using YYCount.Infrastructure;
 using YYCount.Models;
 using YYCount.Services;
@@ -28,9 +31,7 @@ namespace YYCount.ViewModels
 
         public DateTime CalculationDate => _calculation.Date;
 
-        // Коллекция оборудования для выбора (используется только в диалоге, но оставляем для справочника)
         public ObservableCollection<EquipmentItem> EquipmentItems { get; }
-
         public ObservableCollection<PositionViewModel> Positions { get; }
 
         private EquipmentItem _selectedEquipment;
@@ -42,7 +43,6 @@ namespace YYCount.ViewModels
                 if (Set(ref _selectedEquipment, value))
                 {
                     OnPropertyChanged(nameof(SelectedEquipmentName));
-                    // При выборе оборудования запрашиваем фокус на поле количества
                     RequestFocusQuantity?.Invoke();
                 }
             }
@@ -50,11 +50,11 @@ namespace YYCount.ViewModels
 
         public string SelectedEquipmentName => SelectedEquipment?.Name ?? "Выбрать оборудование";
 
-        private double _quantityToAdd;
-        public double QuantityToAdd
+        private string _quantityToAddText = "";
+        public string QuantityToAddText
         {
-            get => _quantityToAdd;
-            set => Set(ref _quantityToAdd, value);
+            get => _quantityToAddText;
+            set => Set(ref _quantityToAddText, value);
         }
 
         public double TotalSum => _calculation.TotalSum;
@@ -66,8 +66,8 @@ namespace YYCount.ViewModels
         public ICommand CancelCommand { get; }
         public ICommand EditEquipmentCommand { get; }
         public ICommand OpenSelectorCommand { get; }
+        public ICommand ExportToExcelCommand { get; }
 
-        // Событие для запроса фокуса
         public event Action RequestFocusQuantity;
 
         public CalculationPageViewModel(MainWindowViewModel mainVm, Calculation existingCalc)
@@ -75,7 +75,6 @@ namespace YYCount.ViewModels
             _mainVm = mainVm;
             _dataService = new JsonDataService();
 
-            // Загружаем справочник (используется в диалоге и для отображения)
             var equip = _dataService.LoadEquipment();
             EquipmentItems = new ObservableCollection<EquipmentItem>(equip);
 
@@ -98,15 +97,14 @@ namespace YYCount.ViewModels
             Positions = new ObservableCollection<PositionViewModel>(
                 _calculation.Positions.Select(p => new PositionViewModel(p)));
 
-            // Инициализация команд
             AddPositionCommand = new RelayCommand(AddPosition, CanAddPosition);
             RemovePositionCommand = new RelayCommand<PositionViewModel>(RemovePosition);
             SaveCalculationCommand = new RelayCommand(SaveCalculation);
             CancelCommand = new RelayCommand(() => _mainVm.NavigateToHistory());
             EditEquipmentCommand = new RelayCommand(EditEquipment);
             OpenSelectorCommand = new RelayCommand(OpenSelector);
+            ExportToExcelCommand = new RelayCommand(ExportToExcel);
 
-            // Подписка на изменения позиций для пересчёта суммы
             Positions.CollectionChanged += (s, e) => OnPropertyChanged(nameof(TotalSum));
             foreach (var pos in Positions)
                 pos.PropertyChanged += (s, e) => OnPropertyChanged(nameof(TotalSum));
@@ -118,23 +116,14 @@ namespace YYCount.ViewModels
             return all.Any() ? all.Max(c => c.Id) + 1 : 1;
         }
 
-        private string _quantityToAddText = "";
-        public string QuantityToAddText
+        private bool CanAddPosition()
         {
-            get => _quantityToAddText;
-            set
-            {
-                if (Set(ref _quantityToAddText, value))
-                {
-                    // Не парсим сразу, парсим при добавлении
-                }
-            }
+            return SelectedEquipment != null && 
+                   double.TryParse(QuantityToAddText, out double q) && q > 0;
         }
 
-// В методе AddPosition:
         private void AddPosition()
         {
-            if (SelectedEquipment == null) return;
             if (!double.TryParse(QuantityToAddText, out double quantity) || quantity <= 0)
                 return;
 
@@ -150,14 +139,10 @@ namespace YYCount.ViewModels
             Positions.Add(vm);
             _calculation.Positions.Add(pos);
 
-            QuantityToAddText = ""; // очищаем после добавления
+            QuantityToAddText = "";
             OnPropertyChanged(nameof(TotalSum));
-            RequestFocusQuantity?.Invoke(); // возвращаем фокус на поле количества
+            RequestFocusQuantity?.Invoke();
         }
-
-// В CanAddPosition проверяем не только SelectedEquipment, но и парсинг:
-        private bool CanAddPosition() => SelectedEquipment != null && 
-                                         double.TryParse(QuantityToAddText, out double q) && q > 0;
 
         private void RemovePosition(PositionViewModel pos)
         {
@@ -171,9 +156,7 @@ namespace YYCount.ViewModels
         {
             var all = _dataService.LoadCalculations();
             if (_isNew)
-            {
                 all.Add(_calculation);
-            }
             else
             {
                 var existing = all.FirstOrDefault(c => c.Id == _calculation.Id);
@@ -200,7 +183,6 @@ namespace YYCount.ViewModels
                 var updated = _dataService.LoadEquipment();
                 foreach (var item in updated)
                     EquipmentItems.Add(item);
-                // Также обновляем выбранное оборудование, если его нет в обновлённом списке
                 if (SelectedEquipment != null && !EquipmentItems.Any(e => e.Id == SelectedEquipment.Id))
                     SelectedEquipment = null;
             }
@@ -213,8 +195,26 @@ namespace YYCount.ViewModels
             if (dialog.ShowDialog() == true && dialog.SelectedEquipment != null)
             {
                 SelectedEquipment = dialog.SelectedEquipment;
-                // После выбора, QuantityToAdd уже сброшено в 0, но пользователь может сразу вводить количество
-                // Фокус устанавливается через событие RequestFocusQuantity
+                RequestFocusQuantity?.Invoke();
+            }
+        }
+
+        private void ExportToExcel()
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "Excel файлы (*.xlsx)|*.xlsx",
+                FileName = $"{CalculationName}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                var service = new ExcelService();
+                string templatePath = AppSettings.ExcelTemplatePath;
+                if (!string.IsNullOrEmpty(templatePath) && File.Exists(templatePath))
+                    service.ExportCalculationToExcel(_calculation, dialog.FileName, templatePath);
+                else
+                    service.ExportCalculationToExcel(_calculation, dialog.FileName);
+                MessageBox.Show("Экспорт завершён!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
     }
@@ -227,7 +227,6 @@ namespace YYCount.ViewModels
 
         public int Id => _model.Id;
 
-        private string _equipmentName;
         public string EquipmentName
         {
             get => _model.EquipmentName;
