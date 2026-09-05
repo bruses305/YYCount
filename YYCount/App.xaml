@@ -1,9 +1,11 @@
 ﻿<Application x:Class="YYCount.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:YYCount"
+             xmlns:local="clr-namespace:YYCount.Infrastructure"
+             xmlns:infrastructure="clr-namespace:YYCount.Infrastructure"
              StartupUri="Views/MainWindow.xaml">
     <Application.Resources>
-         
+        <infrastructure:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        <infrastructure:BooleanToColorConverter x:Key="BooleanToColorConverter"/>
     </Application.Resources>
 </Application>
